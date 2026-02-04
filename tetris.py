@@ -59,7 +59,10 @@ class Tetris:
         for y, row in enumerate(self.current_piece):
             for x, cell in enumerate(row):
                 if cell:
-                    self.board[self.current_pos[0] + y][self.current_pos[1] + x] = 1
+                    board_y = self.current_pos[0] + y
+                    board_x = self.current_pos[1] + x
+                    if board_y >= 0:  # Only update the board if the piece is above the board
+                        self.board[board_y][board_x] = 1
 
     def clear_lines(self):
         lines_to_clear = [i for i, row in enumerate(self.board) if all(row)]
@@ -68,13 +71,15 @@ class Tetris:
             self.board.insert(0, [0] * BOARD_WIDTH)
 
     def update(self):
-        if self.collision((1, 0)):
-            self.join_matrixes()
-            self.clear_lines()
-            self.current_piece = self.new_piece()
-            self.current_pos = [0, BOARD_WIDTH // 2]
+        if not self.collision((1, 0)):
+            self.current_pos[0] += 1  # Move down if no collision
         else:
-            self.current_pos[0] += 1
+            self.join_matrixes()  # Join piece to the board
+            self.clear_lines()     # Clear completed lines
+            self.current_piece = self.new_piece()  # Get a new piece
+            self.current_pos = [0, BOARD_WIDTH // 2]  # Reset position
+            if self.collision((0, 0)):  # Check for game over
+                self.game_over = True
 
     def draw(self, screen):
         for y, row in enumerate(self.board):
